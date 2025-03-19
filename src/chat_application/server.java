@@ -5,12 +5,10 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -20,10 +18,10 @@ import java.net.Socket;
 
 public class server extends Application {
 
-    private TextArea chatArea; // To display messages and logs
-    private TextField inputField; // To type messages
-    private Button sendButton; // To send messages
-    private Button fileButton; // To send files
+    private TextArea chatArea;
+    private TextField inputField;
+    private Button sendButton;
+    private Button fileButton;
     private ServerSocket serverSocket;
     private Socket clientSocket;
     private DataOutputStream dataOutput;
@@ -31,9 +29,8 @@ public class server extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("Server UI");
+        primaryStage.setTitle("This is Server Side");
 
-        // UI Components
         chatArea = new TextArea();
         chatArea.setEditable(false);
         chatArea.setWrapText(true);
@@ -44,7 +41,6 @@ public class server extends Application {
         sendButton = new Button("Send");
         fileButton = new Button("Send File");
 
-        // Layout
         HBox inputBox = new HBox(10, inputField, sendButton, fileButton);
         inputBox.setPadding(new Insets(10));
 
@@ -56,21 +52,21 @@ public class server extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        // Start the server
         startServer();
 
-        // Event Handlers
         sendButton.setOnAction(e -> sendMessage());
         fileButton.setOnAction(e -> sendFile());
         inputField.setOnAction(e -> sendMessage());
     }
 
     private void startServer() {
-        int port = 1265;
+        int port = 3000;
+        
         new Thread(() -> {
             try {
                 serverSocket = new ServerSocket(port);
-                Platform.runLater(() -> chatArea.appendText("Server is listening on port " + port + "\n"));
+                
+                Platform.runLater(() -> chatArea.appendText("Server is running on the " + port + "\n"));
 
                 while (true) {
                     clientSocket = serverSocket.accept();
@@ -79,7 +75,6 @@ public class server extends Application {
                     dataInput = new DataInputStream(clientSocket.getInputStream());
                     dataOutput = new DataOutputStream(clientSocket.getOutputStream());
 
-                    // Handle client communication in a separate thread
                     new Thread(this::handleClient).start();
                 }
             } catch (IOException ex) {
@@ -95,18 +90,13 @@ public class server extends Application {
                 String requestType = dataInput.readUTF();
 
                 if (requestType.startsWith("MESSAGE:")) {
-                    // Handle message
                     String message = requestType.substring(8);
                     Platform.runLater(() -> chatArea.appendText("Client: " + message + "\n"));
-
-                    // Send a response back to the client
-                    dataOutput.writeUTF("Server: Message received - " + message);
+                    dataOutput.writeUTF("Server: Message received  - " + message);
                 } else if (requestType.startsWith("FILE:")) {
-                    // Handle file
                     String fileName = requestType.substring(5);
                     long fileSize = dataInput.readLong();
 
-                    // Save the file to the server
                     FileOutputStream fileOutput = new FileOutputStream("server_" + fileName);
                     byte[] buffer = new byte[4096];
                     int bytesRead;
@@ -118,8 +108,6 @@ public class server extends Application {
 
                     fileOutput.close();
                     Platform.runLater(() -> chatArea.appendText("File received: " + fileName + "\n"));
-
-                    // Send a response back to the client
                     dataOutput.writeUTF("Server: File received - " + fileName);
                 }
             }
@@ -150,11 +138,9 @@ public class server extends Application {
 
         if (selectedFile != null) {
             try (FileInputStream fileInput = new FileInputStream(selectedFile)) {
-                // Send file metadata
                 dataOutput.writeUTF("FILE:" + selectedFile.getName());
                 dataOutput.writeLong(selectedFile.length());
 
-                // Send file data
                 byte[] buffer = new byte[4096];
                 int bytesRead;
                 while ((bytesRead = fileInput.read(buffer)) != -1) {

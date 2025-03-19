@@ -27,7 +27,7 @@ public class ClientSide extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("File Sharing Chat Client");
+        primaryStage.setTitle("This is the Clinet Side");
 
         // UI Components
         chatArea = new TextArea();
@@ -62,8 +62,8 @@ public class ClientSide extends Application {
     }
 
     private void connectToServer() {
-        String serverAddress = "localhost";
-        int port = 1265;
+        String serverAddress = "192.168.43.183";
+        int port = 3000;
 
         try {
             socket = new Socket(serverAddress, port);
@@ -117,7 +117,7 @@ public class ClientSide extends Application {
                 Platform.runLater(() -> chatArea.appendText("You sent a file: " + selectedFile.getName() + "\n"));
             } catch (IOException ex) {
                 ex.printStackTrace();
-                Platform.runLater(() -> chatArea.appendText("Failed to send file.\n"));
+                Platform.runLater(() -> chatArea.appendText("Failed send.\n"));
             }
         }
     }
